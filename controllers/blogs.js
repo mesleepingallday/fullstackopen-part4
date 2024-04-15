@@ -1,8 +1,8 @@
 const blogsRouter = require("express").Router();
 const Blog = require("../models/blog");
 
-blogsRouter.get("/", (request, response) => {
-  const blogs = Blog.find({});
+blogsRouter.get("/", async (request, response) => {
+  const blogs = await Blog.find({});
   response.json(blogs);
 });
 
@@ -47,12 +47,10 @@ blogsRouter.put("/:id", async (request, response) => {
     likes: body.likes,
   };
 
-  const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, {
+  await Blog.findByIdAndUpdate(request.params.id, blog, {
     new: true,
-    runValidators: true,
-    context: "query",
   });
-  response.json(updatedBlog);
+  response.status(200).end();
 });
 
 module.exports = blogsRouter;

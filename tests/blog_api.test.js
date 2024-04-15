@@ -88,6 +88,39 @@ describe("POST /api/blogs", async () => {
   });
 });
 
+describe("DELETE /api/blogs/:id", () => {
+  test("delete a blog", async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToDelete = blogsAtStart[0];
+    await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+    const blogsAtEnd = await helper.blogsInDb();
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1);
+    const titles = blogsAtEnd.map((blog) => blog.title);
+    assert(!titles.includes(blogToDelete.title));
+  });
+});
+
+describe("PUT /api/blogs/:id", () => {
+  test("update a blog", async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToUpdate = blogsAtStart[0];
+    const updatedBlog = {
+      title: "Updated Blog Test",
+      author: "Hai Nguyen",
+      url: "https://www.example.com",
+      likes: 10,
+    };
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedBlog)
+      .expect(200);
+    const blogsAtEnd = await helper.blogsInDb();
+    const titles = blogsAtEnd.map((blog) => blog.title);
+    assert(titles.includes("Updated Blog Test"));
+    assert.strictEqual(blogsAtEnd.length, blogsAtStart.length);
+  });
+});
+
 after(async () => {
   await mongoose.connection.close();
 });
