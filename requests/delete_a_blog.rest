@@ -1,1 +1,10 @@
-DELETE http://localhost:3003/api/blogs/661a978d5129ca2ff73ef40a
+DELETE http://localhost:3003/api/blogs/661e02265b3880442b5c019d
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhhaW5oIiwiaWQiOiI2NjFkZDIzYmNlZTg4MzliMzFhZWE4YjkiLCJpYXQiOjE3MTMyNDE5MzV9.51rX7itJ4gPEJo-Vi7yjyWN8BopHtCeASjcTc8G-8C8
+###
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+    "username": "hainh",
+    "password": "moe123456"
+}

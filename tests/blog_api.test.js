@@ -5,10 +5,17 @@ const app = require("../app");
 const helper = require("./test_helper");
 const assert = require("assert");
 const Blog = require("../models/blog");
+const blog = require("../models/blog");
 const api = supertest(app);
 
+let token = "";
 beforeEach(async () => {
   await Blog.deleteMany({});
+  const loginResponse = await api
+    .post("/api/login")
+    .send({ username: "hainh", password: "moe123456" });
+
+  token = loginResponse.body.token;
 
   let blogObject = helper.initialBlogs.map((blog) => new Blog(blog));
   const promiseArray = blogObject.map((blog) => blog.save());
@@ -18,13 +25,14 @@ beforeEach(async () => {
 //4.8
 describe("GET /api/blogs", () => {
   test("blogs are returned as json", async () => {
+    const blogsAtStart = await helper.blogsInDb();
     const response = await api
       .get("/api/blogs")
       .expect(200)
       .expect("Content-Type", /application\/json/);
 
     const blogPosts = response.body;
-    assert.deepStrictEqual(blogPosts, helper.initialBlogs);
+    assert.deepStrictEqual(blogPosts, blogsAtStart);
   });
 });
 
@@ -51,6 +59,7 @@ describe("POST /api/blogs", async () => {
     };
     await api
       .post("/api/blogs")
+      .set("Authorization", `Bearer ${token}`)
       .send(newBlog)
       .expect(201)
       .expect("Content-Type", /application\/json/);
@@ -69,6 +78,7 @@ describe("POST /api/blogs", async () => {
     };
     await api
       .post("/api/blogs")
+      .set("Authorization", `Bearer ${token}`)
       .send(newBlog)
       .expect(201)
       .expect("Content-Type", /application\/json/);
@@ -84,7 +94,11 @@ describe("POST /api/blogs", async () => {
       author: "Author",
       likes: 3,
     };
-    await api.post("/api/blogs").send(newBlog).expect(400);
+    await api
+      .post("/api/blogs")
+      .set("Authorization", `Bearer ${token}`)
+      .send(newBlog)
+      .expect(400);
   });
 });
 
@@ -92,9 +106,12 @@ describe("DELETE /api/blogs/:id", () => {
   test("delete a blog", async () => {
     const blogsAtStart = await helper.blogsInDb();
     const blogToDelete = blogsAtStart[0];
-    await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(204);
     const blogsAtEnd = await helper.blogsInDb();
-    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1);
+    assert.strictEqual(blogsAtEnd.length, blogsAtStart.length - 1);
     const titles = blogsAtEnd.map((blog) => blog.title);
     assert(!titles.includes(blogToDelete.title));
   });
@@ -112,6 +129,7 @@ describe("PUT /api/blogs/:id", () => {
     };
     await api
       .put(`/api/blogs/${blogToUpdate.id}`)
+      .set("Authorization", `Bearer ${token}`)
       .send(updatedBlog)
       .expect(200);
     const blogsAtEnd = await helper.blogsInDb();
